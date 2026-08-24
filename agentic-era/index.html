@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Surviving as an Engineer in the Agentic Era</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1E2761;
+    --navy-deep:#161B45;
+    --ice:#CADCFC;
+    --white:#FFFFFF;
+    --paper:#F8F9FF;
+    --ink:#252A40;
+    --muted:#6B7394;
+    --accent:#4F6CF7;
+    --line:rgba(30,39,97,.12);
+    --display:'Space Grotesk', system-ui, sans-serif;
+    --body:'Inter', system-ui, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html,body{height:100%;}
+  body{
+    background:#0C1030;
+    font-family:var(--body);
+    color:var(--ink);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* ---------- STAGE (fixed 1280x720, scaled to fit) ---------- */
+  #viewport{
+    position:relative;
+    width:1280px;
+    height:720px;
+    transform-origin:center center;
+  }
+  #stage{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+  }
+
+  /* ---------- SLIDE BASE ---------- */
+  .slide{
+    position:absolute;
+    inset:0;
+    padding:74px 90px 96px;
+    opacity:0;
+    transform:translateX(64px);
+    transition:opacity .5s ease, transform .5s ease;
+    pointer-events:none;
+    display:flex;
+    flex-direction:column;
+  }
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:auto;}
+  .slide.prev{opacity:0;transform:translateX(-64px);}
+  .slide.next{opacity:0;transform:translateX(64px);}
+
+  .slide--dark{background:var(--navy);color:var(--white);}
+  .slide--light{background:var(--paper);color:var(--ink);}
+
+  @media (prefers-reduced-motion: reduce){
+    .slide{transition:opacity .25s ease;transform:none!important;}
+  }
+
+  /* ---------- TYPOGRAPHY HELPERS ---------- */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:.26em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .slide--dark .eyebrow{color:var(--ice);}
+
+  h1.headline{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:40px;
+    line-height:1.12;
+    letter-spacing:-.01em;
+    color:var(--navy);
+    max-width:1000px;
+  }
+  .slide--dark h1.headline{color:var(--white);}
+
+  .lead{
+    font-size:21px;
+    line-height:1.5;
+    color:var(--ink);
+    max-width:880px;
+  }
+  .lead em{font-style:italic;color:var(--accent);font-weight:500;}
+  .muted{color:var(--muted);}
+
+  .content{flex:1;display:flex;flex-direction:column;}
+
+  /* ---------- ACCENT CALLOUT ---------- */
+  .accent{
+    border-left:4px solid var(--ice);
+    padding:14px 0 14px 22px;
+    font-style:italic;
+    font-size:19px;
+    line-height:1.45;
+    color:var(--navy);
+    background:linear-gradient(90deg, rgba(202,220,252,.20), transparent 80%);
+  }
+  .slide--dark .accent{color:var(--ice);background:none;}
+  .accent .sub{display:block;font-style:normal;font-size:14px;color:var(--muted);margin-top:6px;font-family:var(--mono);}
+
+  /* ---------- NUMBERED CIRCLES ---------- */
+  .numlist{list-style:none;display:flex;flex-direction:column;gap:18px;}
+  .numlist li{display:flex;gap:16px;align-items:flex-start;}
+  .num-circle{
+    flex:0 0 auto;
+    width:34px;height:34px;border-radius:50%;
+    background:var(--navy);color:var(--white);
+    font-family:var(--mono);font-weight:700;font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:1px;
+  }
+  .numlist .txt{font-size:17px;line-height:1.5;padding-top:4px;}
+  .numlist .txt b{color:var(--navy);}
+
+  .ticklist{list-style:none;display:flex;flex-direction:column;gap:14px;}
+  .ticklist li{display:flex;gap:14px;font-size:17px;line-height:1.45;}
+  .ticklist li::before{content:"—";color:var(--accent);font-weight:700;}
+
+  /* ---------- TABLES ---------- */
+  table.data{width:100%;border-collapse:collapse;font-size:16px;}
+  table.data thead th{
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--navy);color:var(--white);
+    text-align:left;padding:14px 18px;font-weight:500;
+  }
+  table.data thead th:first-child{border-radius:10px 0 0 0;}
+  table.data thead th:last-child{border-radius:0 10px 0 0;}
+  table.data td{padding:13px 18px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4;}
+  table.data tbody tr:nth-child(odd){background:rgba(202,220,252,.18);}
+  table.data td.strong{font-weight:600;color:var(--navy);}
+
+  /* ---------- CARDS ---------- */
+  .cards{display:grid;gap:20px;}
+  .cards.three{grid-template-columns:repeat(3,1fr);}
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-top:3px solid var(--ice);
+    border-radius:14px;
+    padding:22px 22px 24px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .card.accent-top{border-top-color:var(--accent);}
+  .card .tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .card h3{font-family:var(--display);font-size:19px;color:var(--navy);font-weight:600;}
+  .card p{font-size:15px;line-height:1.5;}
+  .card .quote{font-style:italic;color:var(--ink);font-size:15.5px;}
+  .card .arrow{color:var(--accent);font-family:var(--mono);font-size:14px;line-height:1.5;}
+
+  /* ---------- STAT CALLOUT ---------- */
+  .stat-stack{display:flex;flex-direction:column;gap:16px;}
+  .stat{
+    display:flex;align-items:center;gap:18px;
+    font-family:var(--display);font-size:26px;font-weight:600;
+    padding:18px 24px;border-radius:12px;
+  }
+  .stat .mark{font-family:var(--mono);font-size:22px;}
+  .stat.dim{background:rgba(107,115,148,.10);color:var(--muted);}
+  .stat.hot{background:var(--navy);color:var(--white);}
+  .stat.hot .mark{color:var(--ice);}
+
+  /* ---------- SECTION DIVIDER ---------- */
+  .divider{justify-content:center;}
+  .divider .bg-num{
+    position:absolute;
+    right:60px;bottom:-60px;
+    font-family:var(--display);font-weight:700;
+    font-size:460px;line-height:1;
+    color:rgba(202,220,252,.07);
+    pointer-events:none;user-select:none;
+  }
+  .divider .eyebrow{color:var(--ice);position:relative;z-index:1;}
+  .divider h2{
+    font-family:var(--display);font-weight:700;
+    font-size:58px;line-height:1.08;letter-spacing:-.01em;
+    margin-top:18px;color:var(--white);position:relative;z-index:1;max-width:760px;
+  }
+  .divider .rule{width:64px;height:4px;background:var(--ice);margin-top:30px;position:relative;z-index:1;}
+
+  /* ---------- TITLE SLIDE ---------- */
+  .title-slide{justify-content:center;}
+  .title-slide .eyebrow{color:var(--ice);}
+  .title-slide h1{
+    font-family:var(--display);font-weight:700;
+    font-size:74px;line-height:1.04;letter-spacing:-.02em;
+    margin-top:22px;max-width:1000px;color:var(--white);
+  }
+  .title-slide .subtitle{
+    font-family:var(--mono);font-size:22px;letter-spacing:.04em;
+    color:var(--ice);margin-top:26px;
+  }
+  .title-slide .seq{
+    margin-top:54px;display:flex;gap:14px;align-items:center;
+    font-family:var(--mono);font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:rgba(202,220,252,.6);
+  }
+  .title-slide .seq span.dot{width:6px;height:6px;border-radius:50%;background:var(--ice);}
+
+  /* ---------- HOOK ---------- */
+  .hook{justify-content:center;}
+  .hook h1{font-size:62px;line-height:1.05;}
+  .hook .lead{margin-top:28px;font-size:23px;}
+
+  /* ---------- THREAD (slide 16) ---------- */
+  .thread{justify-content:center;align-items:flex-start;}
+  .thread .big{
+    font-family:var(--display);font-weight:700;
+    font-size:64px;line-height:1.05;color:var(--white);letter-spacing:-.01em;
+  }
+  .thread .big .hl{color:var(--ice);}
+  .thread .lines{margin-top:40px;display:flex;flex-direction:column;gap:14px;max-width:860px;}
+  .thread .lines div{font-size:18px;line-height:1.4;color:rgba(255,255,255,.9);display:flex;gap:14px;}
+  .thread .lines div::before{content:"→";color:var(--ice);}
+
+  /* ---------- CLOSING ---------- */
+  .closing{justify-content:center;align-items:center;text-align:center;}
+  .closing blockquote{
+    font-family:var(--display);font-weight:500;font-style:italic;
+    font-size:54px;line-height:1.22;color:var(--white);max-width:980px;letter-spacing:-.01em;
+  }
+  .closing .sub{
+    font-family:var(--mono);font-size:15px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--ice);margin-top:38px;
+  }
+
+  /* ---------- DIAGRAM (slide 12) ---------- */
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;flex:1;}
+
+  /* ---------- SLIDE HEADER BLOCK ---------- */
+  .shead{margin-bottom:26px;}
+  .shead .eyebrow{margin-bottom:14px;display:block;}
+  .gap{margin-top:auto;}
+
+  /* ---------- CHROME (persistent UI inside stage) ---------- */
+  #chrome{
+    position:absolute;left:0;right:0;bottom:0;
+    height:96px;padding:0 90px;
+    display:flex;align-items:center;justify-content:space-between;
+    pointer-events:none;z-index:50;
+  }
+  #chrome .wordmark{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  #rail{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;}
+  #rail .seg{color:var(--muted);transition:color .4s ease;}
+  #rail .seg.on{color:var(--navy);font-weight:700;}
+  #rail .sep{width:18px;height:1px;background:var(--line);}
+  #nav{display:flex;align-items:center;gap:16px;pointer-events:auto;}
+  #counter{font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:var(--muted);min-width:62px;text-align:right;}
+  .navbtn{
+    width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--line);background:var(--white);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    color:var(--navy);transition:background .2s ease, transform .2s ease;
+  }
+  .navbtn:hover{background:var(--ice);}
+  .navbtn:active{transform:scale(.94);}
+  .navbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .navbtn svg{width:16px;height:16px;}
+
+  /* dark-theme chrome */
+  #stage[data-theme="dark"] #chrome .wordmark{color:rgba(202,220,252,.7);}
+  #stage[data-theme="dark"] #rail .seg{color:rgba(202,220,252,.45);}
+  #stage[data-theme="dark"] #rail .seg.on{color:var(--ice);}
+  #stage[data-theme="dark"] #rail .sep{background:rgba(202,220,252,.25);}
+  #stage[data-theme="dark"] #counter{color:rgba(202,220,252,.7);}
+  #stage[data-theme="dark"] .navbtn{background:transparent;border-color:rgba(202,220,252,.3);color:var(--ice);}
+  #stage[data-theme="dark"] .navbtn:hover{background:rgba(202,220,252,.15);}
+
+  #rail.hide{opacity:0;}
+  #chrome .wordmark.hide{opacity:0;}
+
+  /* progress bar at very top */
+  #progress{position:absolute;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:60;transition:width .45s ease;}
+  #stage[data-theme="dark"] #progress{background:var(--ice);}
+
+  /* ===================== MOBILE REFLOW ===================== */
+  /* Toggled by JS (body.mobile) on narrow / portrait screens.
+     Instead of scaling the 16:9 canvas down to a thumbnail, each
+     slide fills the screen, stacks to one column, and scrolls. */
+  body.mobile{display:block;}
+  body.mobile #viewport{
+    width:100vw;height:100vh;height:100dvh;
+    transform:none!important;
+  }
+  body.mobile #stage{position:absolute;inset:0;}
+  body.mobile .slide{
+    padding:58px 20px 84px;
+    overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* type down-scale */
+  body.mobile h1.headline{font-size:26px;max-width:none;}
+  body.mobile .lead{font-size:16px!important;max-width:none;}
+  body.mobile .shead{margin-bottom:18px;}
+  body.mobile .eyebrow{font-size:11px;letter-spacing:.2em;}
+
+  body.mobile .title-slide h1{font-size:36px;}
+  body.mobile .title-slide .subtitle{font-size:15px;margin-top:18px;}
+  body.mobile .title-slide .seq{font-size:11px;letter-spacing:.12em;flex-wrap:wrap;gap:10px;margin-top:34px;}
+
+  body.mobile .hook h1{font-size:34px;}
+  body.mobile .hook .lead{font-size:17px!important;}
+
+  body.mobile .divider h2{font-size:32px;}
+  body.mobile .divider .bg-num{font-size:200px;right:8px;bottom:0;}
+
+  body.mobile .thread .big{font-size:32px;}
+  body.mobile .thread .lines{margin-top:24px;gap:11px;}
+  body.mobile .thread .lines div{font-size:14px;}
+
+  body.mobile .closing blockquote{font-size:27px;}
+  body.mobile .closing .sub{font-size:14px!important;}
+
+  /* collapse multi-column layouts */
+  body.mobile .twocol{grid-template-columns:1fr;gap:22px;align-items:flex-start;}
+  body.mobile .cards.three{grid-template-columns:1fr;}
+  body.mobile .twocol svg{max-width:300px;display:block;margin:4px auto 0;}
+
+  /* compact tables, lists, stats */
+  body.mobile table.data{font-size:13px;}
+  body.mobile table.data thead th{padding:10px 10px;font-size:11px;}
+  body.mobile table.data td{padding:9px 10px;}
+  body.mobile .ticklist li,
+  body.mobile .numlist .txt{font-size:14.5px!important;}
+  body.mobile .stat{font-size:17px;padding:13px 15px;gap:12px;}
+  body.mobile .stat .mark{font-size:17px;}
+  body.mobile .accent{font-size:15px!important;}
+  body.mobile .card h3{font-size:17px;}
+
+  /* slim chrome: keep only counter + arrows */
+  body.mobile #chrome{height:72px;padding:0 18px;}
+  body.mobile #chrome .wordmark,
+  body.mobile #rail{display:none;}
+  body.mobile #nav{margin-left:auto;}
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage" data-theme="dark">
+    <div id="progress"></div>
+
+    <!-- 1 TITLE -->
+    <section class="slide slide--dark title-slide" data-theme="dark" data-part="0">
+      <span class="eyebrow">Impact Management</span>
+      <h1>Surviving as an Engineer in the Agentic Era</h1>
+      <div class="subtitle">A field guide to staying valuable</div>
+      <div style="margin-top:30px;">
+        <div style="font-family:var(--display);font-weight:600;font-size:21px;color:var(--white);">Adam M.P.</div>
+        <div style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;color:rgba(202,220,252,.72);margin-top:5px;">Mediocre Engineer in a Singapore Tech Company</div>
+      </div>
+      <div class="seq">Engineer <span class="dot"></span> Employee <span class="dot"></span> Individual</div>
+    </section>
+
+    <!-- 2 PROFILE / JOURNEY -->
+    <section class="slide slide--light" data-theme="light" data-part="0">
+      <div class="shead">
+        <span class="eyebrow">Why listen to me</span>
+        <h1 class="headline">Why this is called surviving — not thriving.</h1>
+      </div>
+      <div class="content">
+        <p class="lead" style="font-size:16.5px;">My last two years at work have swung between nearly being performance-managed out and landing a top-performer bonus — twice each. The current half is still unwritten.</p>
+        <div style="max-width:840px;margin:10px auto 0;width:100%;">
+          <svg viewBox="0 0 880 270" width="100%" role="img" aria-label="Performance timeline alternating between almost-PIPed and top performer across five halves">
+            <!-- guide bands -->
+            <line x1="80" y1="66"  x2="840" y2="66"  stroke="#CADCFC" stroke-width="2" stroke-dasharray="3 5"/>
+            <line x1="80" y1="200" x2="840" y2="200" stroke="#CADCFC" stroke-width="2" stroke-dasharray="3 5"/>
+            <text x="80" y="50"  font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.5" fill="#1E2761">TOP-PERFORMER BONUS</text>
+            <text x="80" y="224" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.5" fill="#C25B6E">ALMOST PIPED</text>
+            <!-- the line -->
+            <polyline points="80,200 270,66 460,200 650,66" fill="none" stroke="#1E2761" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <line x1="650" y1="66" x2="840" y2="40" stroke="#4F6CF7" stroke-width="3" stroke-dasharray="5 6" stroke-linecap="round"/>
+            <!-- points -->
+            <circle cx="80"  cy="200" r="7" fill="#C25B6E"/>
+            <circle cx="270" cy="66"  r="7" fill="#1E2761"/>
+            <circle cx="460" cy="200" r="7" fill="#C25B6E"/>
+            <circle cx="650" cy="66"  r="7" fill="#1E2761"/>
+            <circle cx="840" cy="40" r="8" fill="#FFFFFF" stroke="#4F6CF7" stroke-width="2.5"/>
+            <text x="840" y="44" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#4F6CF7" text-anchor="middle">?</text>
+            <!-- x labels -->
+            <g font-family="JetBrains Mono, monospace" font-size="11.5" fill="#252A40" text-anchor="middle">
+              <text x="80"  y="252">H1 2024</text>
+              <text x="270" y="252">H2 2024</text>
+              <text x="460" y="252">H1 2025</text>
+              <text x="650" y="252">H2 2025</text>
+              <text x="840" y="252">H1 2026</text>
+              <text x="840" y="266" fill="#6B7394" font-size="10">ongoing</text>
+            </g>
+          </svg>
+        </div>
+        <div class="accent" style="margin-top:6px;font-size:15.5px;">So these lessons aren't from someone who always wins and never had to learn why. They're from someone who fails, recovers, fails again, and recovers again.</div>
+      </div>
+    </section>
+
+    <!-- 3 HOOK -->
+    <section class="slide slide--light hook" data-theme="light" data-part="0">
+      <span class="eyebrow">The premise</span>
+      <h1 class="headline">The rules changed.<br>Did you?</h1>
+      <p class="lead" style="margin-top:28px;">AI agents can now write code, run pipelines, analyze data, and ship features. The question is no longer <em>can you do the work</em> — it's <em>why should it be you?</em></p>
+    </section>
+
+    <!-- 3 DIVIDER 1 -->
+    <section class="slide slide--dark divider" data-theme="dark" data-part="1">
+      <div class="bg-num">01</div>
+      <span class="eyebrow">Part 1 of 3</span>
+      <h2>Surviving as an Engineer</h2>
+      <div class="rule"></div>
+    </section>
+
+    <!-- 4 X ENGINEER -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">Identity</span>
+        <h1 class="headline">Your title is not your identity. Your problem is.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">Stop thinking of yourself as a "Data Engineer" or "Backend Engineer." Start thinking: <em>"I am a problem solver for Stakeholder X."</em></p>
+        <ul class="ticklist" style="margin-top:26px;">
+          <li>Your stack will change. Your stakeholders' problems won't.</li>
+          <li>No one retains an engineer for their platform preference.</li>
+          <li>They retain you for what you made easier, faster, or possible.</li>
+        </ul>
+        <div class="gap"></div>
+        <div class="accent">"Your scope of work is not X Engineer. It's Problem Solver for X."</div>
+      </div>
+    </section>
+
+    <!-- 5 TECHNICAL FLOOR -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">The baseline</span>
+        <h1 class="headline">Technical skill is the floor, not the ceiling.</h1>
+      </div>
+      <div class="content">
+        <p class="lead muted" style="font-size:18px;">You cannot <em style="color:var(--navy);font-style:normal;font-weight:600;">fail</em> on technical. But you cannot <em style="color:var(--navy);font-style:normal;font-weight:600;">survive</em> on technical alone.</p>
+        <table class="data" style="margin-top:22px;">
+          <thead><tr><th>Bare minimum · you can't skip this</th><th>Survival skill · what sets you apart</th></tr></thead>
+          <tbody>
+            <tr><td>Strong fundamentals</td><td class="strong">Stakeholder empathy</td></tr>
+            <tr><td>Clean, working code</td><td class="strong">Clear communication</td></tr>
+            <tr><td>Knowing your stack</td><td class="strong">Understanding business context</td></tr>
+            <tr><td>Problem debugging</td><td class="strong">Anticipating needs before they're asked</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6 BUILD GUARDRAILS -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">Guardrails</span>
+        <h1 class="headline">You're no longer building just for humans. Build accordingly.</h1>
+      </div>
+      <div class="twocol" style="align-items:flex-start;">
+        <div>
+          <table class="data">
+            <thead><tr><th>Old world</th><th>Agentic era</th></tr></thead>
+            <tbody>
+              <tr><td>User clicks through a UI flow</td><td class="strong">Agent calls your API directly</td></tr>
+              <tr><td>Frontend validates the input</td><td class="strong">No frontend. No guarantee.</td></tr>
+              <tr><td>Contract enforced by UX</td><td class="strong">Only as good as your guardrail</td></tr>
+              <tr><td>Errors are human-readable</td><td class="strong">Errors may never be seen</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <p class="lead" style="font-size:16px;">Even a service caller can't be trusted: a contract promises "no duplicates," a vibecoded feature ships — and now you're getting them. No one is watching.</p>
+          <ul class="ticklist" style="margin-top:16px;font-size:15.5px;">
+            <li>Validate at the boundary — every input, every time.</li>
+            <li>Deduplicate defensively, even if the contract says not to.</li>
+            <li>Fail loudly — surfaced errors beat silent corruption.</li>
+            <li>Design for the worst caller, not the best one.</li>
+          </ul>
+          <div class="accent" style="margin-top:18px;font-size:16px;">Don't trust the contract. Trust your guardrail.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6B GUARDRAILS = MOAT -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">Your moat</span>
+        <h1 class="headline">Guardrails aren't overhead. They're your moat.</h1>
+      </div>
+      <div class="content">
+        <p class="lead muted" style="font-size:18px;">The platforms that survive agentic adoption are the ones that didn't break when agents arrived. Guardrails used to be best practice — now they're table stakes.</p>
+        <div class="cards three" style="margin-top:22px;">
+          <div class="card"><span class="tag">Input guardrails</span><p>Validate schema, types, ranges, and business rules at every API boundary.</p><p>Don't assume the caller is a well-behaved human.</p></div>
+          <div class="card"><span class="tag">Idempotency &amp; dedup</span><p>Handle repeated or duplicate calls gracefully.</p><p>Vibecoded agents <b>will</b> retry — and send the same payload twice.</p></div>
+          <div class="card accent-top"><span class="tag" style="color:var(--accent);">Observability</span><p>If an agent breaks your service silently, you need to know.</p><p>Log, alert, trace every integration point.</p></div>
+        </div>
+        <div class="gap"></div>
+        <div class="accent">Strong fundamentals + guardrails = a platform agents can use without destroying.</div>
+      </div>
+    </section>
+
+    <!-- 7 REPLACEABLE -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">Reality check</span>
+        <h1 class="headline">If it's purely technical, AI can do it — and it's getting better.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">This isn't a threat. It's a redirect.</p>
+        <div class="stat-stack" style="margin-top:22px;">
+          <div class="stat dim"><span class="mark">→</span> Pure technical execution &nbsp;=&nbsp; commoditized</div>
+          <div class="stat hot"><span class="mark">→</span> Technical + context + relationship &nbsp;=&nbsp; valuable</div>
+        </div>
+        <div class="gap"></div>
+        <p class="lead muted" style="font-size:18px;">The engineers who thrive don't out-code the AI. They know <em style="color:var(--navy);font-style:normal;font-weight:600;">which</em> problem to solve and <em style="color:var(--navy);font-style:normal;font-weight:600;">why</em> it matters.</p>
+      </div>
+    </section>
+
+    <!-- 7 OWN IMPACT -->
+    <section class="slide slide--light" data-theme="light" data-part="1">
+      <div class="shead">
+        <span class="eyebrow">Retention</span>
+        <h1 class="headline">Your customer's satisfaction is your retention letter.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">When your stakeholder is happy, you are kept. When they're confused or blocked — no matter how elegant your code — you are a liability.</p>
+        <ol class="numlist" style="margin-top:24px;">
+          <li><span class="num-circle">1</span><span class="txt">Find out what your stakeholders care about most.</span></li>
+          <li><span class="num-circle">2</span><span class="txt">Document what you built and how it helped them.</span></li>
+          <li><span class="num-circle">3</span><span class="txt">Get their testimony, not just their sign-off.</span></li>
+        </ol>
+        <div class="gap"></div>
+        <div class="accent">"Anda puas, saya dipertahankan."<span class="sub">Your satisfaction = my job security.</span></div>
+      </div>
+    </section>
+
+    <!-- 8 DIVIDER 2 -->
+    <section class="slide slide--dark divider" data-theme="dark" data-part="2">
+      <div class="bg-num">02</div>
+      <span class="eyebrow">Part 2 of 3</span>
+      <h2>Surviving as an Employee</h2>
+      <div class="rule"></div>
+    </section>
+
+    <!-- 9 HIGH AGENCY -->
+    <section class="slide slide--light" data-theme="light" data-part="2">
+      <div class="shead">
+        <span class="eyebrow">Agency</span>
+        <h1 class="headline">Everyone is replaceable. So act like it — in a good way.</h1>
+      </div>
+      <div class="content">
+        <p class="lead muted" style="font-size:18px;">Not irreplaceable through gatekeeping. High-agency: the person who moves things forward without being told.</p>
+        <div class="cards three" style="margin-top:22px;">
+          <div class="card"><span class="tag">Low agency</span><p>Waits for direction.</p><p>Protects their lane.</p><p>Defined by the job description.</p></div>
+          <div class="card"><span class="tag">Medium agency</span><p>Follows and improves.</p><p>Works within their lane.</p><p>Does the job description.</p></div>
+          <div class="card accent-top"><span class="tag" style="color:var(--accent);">High agency</span><p><b>Creates direction.</b></p><p><b>Extends their lane when needed.</b></p><p><b>Exceeds it with context.</b></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 IDENTITY / SKILLS -->
+    <section class="slide slide--light" data-theme="light" data-part="2">
+      <div class="shead">
+        <span class="eyebrow">Durability</span>
+        <h1 class="headline">You are not your job title. You are your ability to learn.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">"I am an accountant" is a fragile identity when the role changes. "I learn fast and adapt" is durable.</p>
+        <ul class="ticklist" style="margin-top:24px;">
+          <li>An HR professional who learns to use AI for screening &nbsp;→&nbsp; <b style="color:var(--navy)">retained</b></li>
+          <li>An accountant who automates their own reporting &nbsp;→&nbsp; <b style="color:var(--navy)">valued</b></li>
+          <li>A data analyst who coaches their team on AI tools &nbsp;→&nbsp; <b style="color:var(--navy)">promoted</b></li>
+        </ul>
+        <div class="gap"></div>
+        <div class="accent">Attach your identity to how you grow — not what you do.</div>
+      </div>
+    </section>
+
+    <!-- 11 GOOD MANAGER -->
+    <section class="slide slide--light" data-theme="light" data-part="2">
+      <div class="shead">
+        <span class="eyebrow">Environment</span>
+        <h1 class="headline">Your manager is your environment. Choose wisely.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">A good manager amplifies your impact. A bad one absorbs it.</p>
+        <ol class="numlist" style="margin-top:24px;">
+          <li><span class="num-circle">1</span><span class="txt">Try to help them improve — without lecturing.</span></li>
+          <li><span class="num-circle">2</span><span class="txt">If they can't be influenced, build impact <b>wider</b> than their scope.</span></li>
+          <li><span class="num-circle">3</span><span class="txt">Let your work speak to people above, beside, and beyond them.</span></li>
+        </ol>
+        <div class="gap"></div>
+        <div class="accent">Build your impact wider than your manager's shadow.</div>
+      </div>
+    </section>
+
+    <!-- 12 STAKEHOLDER -->
+    <section class="slide slide--light" data-theme="light" data-part="2">
+      <div class="shead">
+        <span class="eyebrow">Ecosystem</span>
+        <h1 class="headline">Stakeholders aren't your audience. They're your ecosystem.</h1>
+      </div>
+      <div class="twocol">
+        <div>
+          <p class="lead" style="font-size:18px;">A stakeholder is anyone whose work touches your scope — or whose scope your work touches.</p>
+          <ul class="ticklist" style="margin-top:20px;font-size:16px;">
+            <li>Don't be a blocker. Be a connector.</li>
+            <li>Get reviews. Document outcomes. Collect testimony.</li>
+            <li>Be the person they think of when things need to get done.</li>
+          </ul>
+          <div class="accent" style="margin-top:22px;font-size:16px;">Stakeholder trust is the currency that outlasts any role, stack, or company.</div>
+        </div>
+        <div>
+          <svg viewBox="0 0 460 360" width="100%" role="img" aria-label="Hub and spoke diagram with You at the center connected to Reviews, Documentation, Testimony and Trust">
+            <line x1="230" y1="180" x2="230" y2="58"  stroke="#CADCFC" stroke-width="2"/>
+            <line x1="230" y1="180" x2="394" y2="180" stroke="#CADCFC" stroke-width="2"/>
+            <line x1="230" y1="180" x2="230" y2="302" stroke="#CADCFC" stroke-width="2"/>
+            <line x1="230" y1="180" x2="66"  y2="180" stroke="#CADCFC" stroke-width="2"/>
+            <g font-family="JetBrains Mono, monospace" font-size="11" fill="#6B7394" text-anchor="middle">
+              <text x="252" y="124">Reviews</text>
+              <text x="312" y="170">Docs</text>
+              <text x="256" y="246">Testimony</text>
+              <text x="148" y="170">Trust</text>
+            </g>
+            <!-- satellites -->
+            <g>
+              <circle cx="230" cy="46"  r="40" fill="#CADCFC"/>
+              <circle cx="394" cy="180" r="40" fill="#CADCFC"/>
+              <circle cx="230" cy="314" r="40" fill="#CADCFC"/>
+              <circle cx="66"  cy="180" r="40" fill="#CADCFC"/>
+              <g font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#1E2761" text-anchor="middle">
+                <text x="230" y="50">Review</text>
+                <text x="394" y="184">Document</text>
+                <text x="230" y="318">Testify</text>
+                <text x="66"  y="184">Trust</text>
+              </g>
+            </g>
+            <!-- center -->
+            <circle cx="230" cy="180" r="54" fill="#1E2761"/>
+            <text x="230" y="186" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">You</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 DIVIDER 3 -->
+    <section class="slide slide--dark divider" data-theme="dark" data-part="3">
+      <div class="bg-num">03</div>
+      <span class="eyebrow">Part 3 of 3</span>
+      <h2>Surviving as an Individual</h2>
+      <div class="rule"></div>
+    </section>
+
+    <!-- 14 LET GO EXPERIENCE -->
+    <section class="slide slide--light" data-theme="light" data-part="3">
+      <div class="shead">
+        <span class="eyebrow">Beginner's mind</span>
+        <h1 class="headline">Your past experience isn't the advantage. Your willingness to start fresh is.</h1>
+      </div>
+      <div class="content">
+        <p class="lead">Accumulated expertise gives you context — but it also gives you blind spots. The most dangerous trap: thinking you already know how things work.</p>
+        <ul class="ticklist" style="margin-top:24px;">
+          <li>Treat every new AI tool as a new discipline to learn.</li>
+          <li>Unlearn before you re-learn.</li>
+          <li>Bring your domain wisdom — leave your method attachment at the door.</li>
+        </ul>
+        <div class="gap"></div>
+        <div class="accent">The barrier to a new industry isn't expertise. It's willingness.</div>
+      </div>
+    </section>
+
+    <!-- 15 WHICH INDUSTRY -->
+    <section class="slide slide--light" data-theme="light" data-part="3">
+      <div class="shead">
+        <span class="eyebrow">Where to build</span>
+        <h1 class="headline">When barriers are this low, where you build matters more than ever.</h1>
+      </div>
+      <div class="content">
+        <table class="data" style="margin-top:4px;">
+          <thead><tr><th>Slow-moving industries</th><th>Fast-moving industries</th></tr></thead>
+          <tbody>
+            <tr><td class="strong">Healthcare, Legal, HR, Manufacturing</td><td>IT, Finance, SaaS, Consumer Tech</td></tr>
+            <tr><td>High friction to enter</td><td>Low friction — anyone can enter</td></tr>
+            <tr><td>Market education takes time</td><td>Iteration cycles are days, not years</td></tr>
+            <tr><td class="strong">Low effort to maintain, high long-term return</td><td>High effort to maintain, high churn</td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--navy);">
+          <span style="background:rgba(202,220,252,.4);padding:8px 12px;border-radius:8px;">1 · Educate the market</span>
+          <span style="background:rgba(202,220,252,.4);padding:8px 12px;border-radius:8px;">2 · Penetrate deeply</span>
+          <span style="background:rgba(202,220,252,.4);padding:8px 12px;border-radius:8px;">3 · Build lock-in</span>
+          <span style="background:rgba(202,220,252,.4);padding:8px 12px;border-radius:8px;">4 · Let compounding do the rest</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 THREAD -->
+    <section class="slide slide--dark thread" data-theme="dark" data-part="0">
+      <span class="eyebrow">One idea underneath all of this</span>
+      <div class="big" style="margin-top:16px;">Let go of <span class="hl">attachment.</span></div>
+      <div class="lines">
+        <div>Let go of your platform &nbsp;·&nbsp; become a problem solver</div>
+        <div>Let go of your job title &nbsp;·&nbsp; become a learner</div>
+        <div>Let go of your past expertise &nbsp;·&nbsp; become a beginner again</div>
+        <div>Let go of fast, easy markets &nbsp;·&nbsp; build where it's slow and deep</div>
+      </div>
+    </section>
+
+    <!-- 17 ATTACHMENT COSTS -->
+    <section class="slide slide--light" data-theme="light" data-part="3">
+      <div class="shead">
+        <span class="eyebrow">The cost</span>
+        <h1 class="headline">Attachment is the hidden reason people get left behind.</h1>
+      </div>
+      <div class="content">
+        <div class="cards three" style="margin-top:8px;">
+          <div class="card">
+            <span class="tag">The attached engineer</span>
+            <p class="quote">"I only do Stack X. That's my expertise."</p>
+            <p class="arrow">→ AI does Stack X better every quarter.<br>→ They wait to be replaced.</p>
+          </div>
+          <div class="card">
+            <span class="tag">The attached employee</span>
+            <p class="quote">"My job is Role Y. That's all I'm responsible for."</p>
+            <p class="arrow">→ AI takes Role Y.<br>→ No adjacent skills to fall back on.</p>
+          </div>
+          <div class="card accent-top">
+            <span class="tag" style="color:var(--accent);">The adaptive professional</span>
+            <p class="quote">"I solve problems for People Z. Let me learn whatever that takes."</p>
+            <p class="arrow">→ AI becomes their tool, not their replacement.<br>→ They remain essential.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 CLOSING -->
+    <section class="slide slide--dark closing" data-theme="dark" data-part="0">
+      <blockquote>"You're made for this world,<br>but this world is not made for you."</blockquote>
+      <div style="font-family:var(--mono);font-size:15px;letter-spacing:.18em;color:var(--ice);margin-top:24px;">— Adam M.P.</div>
+      <div class="sub" style="text-transform:none;letter-spacing:.01em;font-family:var(--body);font-style:italic;font-size:19px;line-height:1.55;max-width:820px;">Tebarlah manfaat seluas-luasnya, but let go of these worldly attachments — yang dibawa mati adalah amal kalian.</div>
+    </section>
+
+    <!-- CHROME -->
+    <div id="chrome">
+      <div class="wordmark" id="wordmark">Surviving the Agentic Era</div>
+      <div id="rail">
+        <span class="seg" data-seg="1">Engineer</span><span class="sep"></span>
+        <span class="seg" data-seg="2">Employee</span><span class="sep"></span>
+        <span class="seg" data-seg="3">Individual</span>
+      </div>
+      <div id="nav">
+        <button class="navbtn" id="prev" aria-label="Previous slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <span id="counter">01 / 18</span>
+        <button class="navbtn" id="next" aria-label="Next slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const slides  = Array.from(document.querySelectorAll('.slide'));
+  const stage   = document.getElementById('stage');
+  const counter = document.getElementById('counter');
+  const rail    = document.getElementById('rail');
+  const wordmark= document.getElementById('wordmark');
+  const progress= document.getElementById('progress');
+  const segs    = Array.from(document.querySelectorAll('#rail .seg'));
+  let current = 0;
+
+  function render(){
+    slides.forEach((s,i)=>{
+      s.classList.remove('active','prev','next');
+      if(i===current) s.classList.add('active');
+      else if(i<current) s.classList.add('prev');
+      else s.classList.add('next');
+    });
+
+    const slide = slides[current];
+    const theme = slide.dataset.theme || 'light';
+    const part  = slide.dataset.part || '0';
+
+    stage.setAttribute('data-theme', theme);
+    counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    progress.style.width = ((current)/(slides.length-1)*100) + '%';
+
+    // journey rail
+    if(part === '0'){
+      rail.classList.add('hide');
+    }else{
+      rail.classList.remove('hide');
+      segs.forEach(sg => sg.classList.toggle('on', sg.dataset.seg === part));
+    }
+
+    // hide wordmark on full-bleed title & closing
+    const fullBleed = (current === 0 || current === slides.length-1);
+    wordmark.classList.toggle('hide', fullBleed);
+  }
+
+  function go(n){
+    current = Math.max(0, Math.min(slides.length-1, n));
+    render();
+  }
+
+  document.getElementById('next').addEventListener('click', ()=>go(current+1));
+  document.getElementById('prev').addEventListener('click', ()=>go(current-1));
+
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); go(current+1); }
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); go(current-1); }
+    else if(e.key==='Home'){ go(0); }
+    else if(e.key==='End'){ go(slides.length-1); }
+  });
+
+  // touch swipe (horizontal only — vertical gestures scroll the slide)
+  let tx=0, ty=0;
+  stage.addEventListener('touchstart', e=>{
+    tx=e.changedTouches[0].clientX; ty=e.changedTouches[0].clientY;
+  }, {passive:true});
+  stage.addEventListener('touchend', e=>{
+    const dx=e.changedTouches[0].clientX - tx;
+    const dy=e.changedTouches[0].clientY - ty;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)*1.4){
+      dx < 0 ? go(current+1) : go(current-1);
+    }
+  }, {passive:true});
+
+  // fit: scale the 16:9 canvas on roomy screens; reflow on phones
+  const vp = document.getElementById('viewport');
+  function fit(){
+    const w = window.innerWidth, h = window.innerHeight;
+    const scale = Math.min((w-24)/1280, (h-24)/720);
+    if(scale < 0.5){
+      // screen too small to scale legibly -> mobile reflow layout
+      document.body.classList.add('mobile');
+      vp.style.transform = 'none';
+    }else{
+      document.body.classList.remove('mobile');
+      vp.style.transform = 'scale(' + scale + ')';
+    }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  fit();
+  render();
+</script>
+</body>
+</html>
